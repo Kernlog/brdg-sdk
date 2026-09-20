@@ -1,0 +1,64 @@
+{
+  "name": "@bridg/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript client for the Bridg API: quote, build, submit and track cross-chain transfers.",
+  "license": "MIT",
+  "homepage": "https://docs.bridg.now/sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kernlog/bridg-sdk.git"
+  },
+  "bugs": "https://github.com/Kernlog/bridg-sdk/issues",
+  "keywords": [
+    "bridge",
+    "cross-chain",
+    "aggregator",
+    "swap",
+    "bridg"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "tsup",
+    "generate": "node scripts/generate-types.mjs",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "eslint": "10.2.1",
+    "openapi-typescript": "7.13.0",
+    "prettier": "3.8.3",
+    "tsup": "8.5.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.58.2",
+    "vitest": "4.1.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

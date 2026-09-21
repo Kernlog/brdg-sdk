@@ -66,7 +66,7 @@ Quote, build and submit are open. A session is needed only for `listOrders`, `ge
 const { message } = await bridg.requestNonce({ address, chainFamily: 'evm' });
 const signature = await wallet.signMessage({ message }); // sign the string verbatim
 await bridg.verifySignature({ chainFamily: 'evm', message, signature }); // token kept on the client
-const { items } = await bridg.listOrders({ sender: address });
+const { transfers } = await bridg.listOrders({ sender: address });
 ```
 
 ## Referrals

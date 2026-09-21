@@ -1,6 +1,6 @@
 {
-  "name": "@bridg/sdk",
-  "version": "0.1.0",
+  "name": "@kernlog/bridg-sdk",
+  "version": "0.1.1",
   "description": "TypeScript client for the Bridg API: quote, build, submit and track cross-chain transfers.",
   "license": "MIT",
   "homepage": "https://docs.bridg.now/sdk",

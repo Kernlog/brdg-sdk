@@ -1,9 +1,9 @@
-# @bridg/sdk
+# @kernlog/bridg-sdk
 
 TypeScript client for the [Bridg API](https://docs.bridg.now/api-reference/overview). One method per endpoint, typed from the API's own OpenAPI document, no runtime dependencies.
 
 ```bash
-npm install @bridg/sdk
+npm install @kernlog/bridg-sdk
 ```
 
 Node 18+ or any runtime with a global `fetch`.
@@ -11,7 +11,7 @@ Node 18+ or any runtime with a global `fetch`.
 ## Quote, build, sign, submit, track
 
 ```ts
-import { createClient } from '@bridg/sdk';
+import { createClient } from '@kernlog/bridg-sdk';
 
 const bridg = createClient();
 
@@ -82,7 +82,7 @@ await bridg.getQuote({ ...params, referralWallet: '0xYourWallet', referralBps: 1
 Every API error is a `BridgError` with the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`.
 
 ```ts
-import { isBridgError } from '@bridg/sdk';
+import { isBridgError } from '@kernlog/bridg-sdk';
 
 try {
   await bridg.buildTransfer({ decisionId });

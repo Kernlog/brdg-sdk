@@ -6,7 +6,6 @@ export interface RequestConfig {
   baseUrl: string;
   fetch: typeof fetch;
   headers: Record<string, string>;
-  token: string | undefined;
 }
 
 export interface RequestOptions {
@@ -37,7 +36,6 @@ export async function request<T>(config: RequestConfig, options: RequestOptions)
   const url = buildUrl(config.baseUrl, options.path, options.query);
   const headers: Record<string, string> = { accept: 'application/json', ...config.headers };
   if (options.body !== undefined) headers['content-type'] = 'application/json';
-  if (config.token) headers.authorization = `Bearer ${config.token}`;
 
   const response = await config.fetch(url, {
     method: options.method,

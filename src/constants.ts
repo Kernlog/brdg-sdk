@@ -14,4 +14,4 @@ export const TERMINAL_TRANSFER_STATUSES = [
   'ABANDONED',
 ] as const;
 
-export const SDK_VERSION = '0.1.1';
+export const SDK_VERSION = '0.2.0';

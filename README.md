@@ -1,6 +1,6 @@
 # @kernlog/bridg-sdk
 
-TypeScript client for the [Bridg API](https://docs.bridg.now/api-reference/overview). One method per endpoint, typed from the API's own OpenAPI document, no runtime dependencies.
+TypeScript client for the [Bridg API](https://docs.bridg.now/api-reference/overview): quote a cross-chain transfer, build the transaction, submit it, track it. Typed from the API's own OpenAPI document. No API key, no runtime dependencies.
 
 ```bash
 npm install @kernlog/bridg-sdk
@@ -52,21 +52,9 @@ const transfer = await bridg.waitForTransfer(build.transferId, {
 ```ts
 createClient({
   baseUrl: 'https://api.bridg.now/v1', // default
-  token: 'session token', // only for listing your own orders
   headers: { 'x-integrator': 'my-app' },
   fetch: customFetch,
 });
-```
-
-## Sessions
-
-Quote, build and submit are open. A session is needed only for `listOrders`, `getHistory`, `getProfile` and wallet management.
-
-```ts
-const { message } = await bridg.requestNonce({ address, chainFamily: 'evm' });
-const signature = await wallet.signMessage({ message }); // sign the string verbatim
-await bridg.verifySignature({ chainFamily: 'evm', message, signature }); // token kept on the client
-const { transfers } = await bridg.listOrders({ sender: address });
 ```
 
 ## Referrals
@@ -97,15 +85,16 @@ The codes are listed at [docs.bridg.now/reference/errors](https://docs.bridg.now
 
 ## Methods
 
-| Group               | Methods                                                                                                                               |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Markets             | `getSourceChains` `getRoutes` `getVenues`                                                                                             |
-| Quote and execute   | `getQuote` `buildTransfer` `submitTransfer` `getTransfer` `waitForTransfer` `buildRedeem` `submitRedeem`                              |
-| Large orders        | `acceptPlan` `startSplit` `nextSplitLeg` `getSplitGroup`                                                                              |
-| Hyperliquid         | `submitPermit` `submitSpotTransfer`                                                                                                   |
-| Sessions and orders | `requestNonce` `verifySignature` `getSession` `logout` `listOrders` `getOrder` `getHistory` `setUsername` `nameWallet` `unlinkWallet` |
-| Realtime            | `watchCorridor` `getConnectionToken` `getSubscriptionToken`                                                                           |
-| Data                | `getPrices` `getPriceHistory` `getBalance` `getPortfolio` `getStats` `getLeaderboard` `getProfile` `getHealth`                        |
+| Method                                                              | Endpoint                                          |
+| ------------------------------------------------------------------- | ------------------------------------------------- |
+| `getSourceChains()`                                                 | `GET /bridge/source-chains`                       |
+| `getRoutes({ fromChain, toChain, privacy? })`                       | `GET /bridge/routes`                              |
+| `getVenues()`                                                       | `GET /bridge/venues`                              |
+| `getQuote(request)`                                                 | `POST /bridge/quote`                              |
+| `buildTransfer({ decisionId, quoteId? })`                           | `POST /bridge/build`                              |
+| `submitTransfer(transferId, { txHash \| signedTransaction, step })` | `POST /bridge/transfers/{id}/submit`              |
+| `getTransfer(transferId)`                                           | `GET /bridge/transfers/{id}`                      |
+| `waitForTransfer(transferId, options?)`                             | polls `GET /bridge/transfers/{id}` until terminal |
 
 ## Development
 

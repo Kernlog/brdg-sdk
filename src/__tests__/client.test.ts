@@ -63,19 +63,6 @@ describe('BridgClient', () => {
     expect(error.endpoint).toBe('GET /bridge/venues');
   });
 
-  it('sends the bearer token once a signature is verified, and forgets it on logout', async () => {
-    const { fetchImpl, calls } = fakeFetch(({ url }) =>
-      url.endsWith('/auth/verify') ? { body: { token: 'tok_1' } } : { body: {} },
-    );
-    const client = createClient({ fetch: fetchImpl });
-    await client.verifySignature({ chainFamily: 'evm', message: 'm', signature: '0xsig' });
-    await client.getHistory();
-    expect((calls[1]?.init.headers as Record<string, string>).authorization).toBe('Bearer tok_1');
-    await client.logout();
-    await client.getHealth();
-    expect((calls[3]?.init.headers as Record<string, string>).authorization).toBeUndefined();
-  });
-
   it('waits for a transfer until it is terminal', async () => {
     const statuses = ['SUBMITTED', 'PENDING', 'COMPLETED'];
     const { fetchImpl, calls } = fakeFetch(() => ({ body: { status: statuses.shift() } }));

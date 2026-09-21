@@ -6,6 +6,15 @@ All notable changes to `@kernlog/bridg-sdk` are recorded here. The format follow
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-21
+
+### Changed
+
+- The client now covers the public surface only: markets, quote, build, submit, transfer and
+  `waitForTransfer`. Session, order-history, large-order, Hyperliquid, realtime and data methods
+  are removed, along with the `token` option and `setToken`. A Hyperliquid deposit is a transfer
+  to chain `hypercore`; nothing else is needed.
+
 ## [0.1.1] - 2026-09-21
 
 ### Changed
@@ -22,6 +31,7 @@ All notable changes to `@kernlog/bridg-sdk` are recorded here. The format follow
 - `BridgError` carrying the API's `code`, `status`, `details` and `retryAfterMs`.
 - Request and response types generated from the API's OpenAPI document.
 
-[Unreleased]: https://github.com/Kernlog/bridg-sdk/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Kernlog/bridg-sdk/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Kernlog/bridg-sdk/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Kernlog/bridg-sdk/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Kernlog/bridg-sdk/releases/tag/v0.1.0

@@ -1,4 +1,4 @@
-import { BridgError, type BridgErrorBody } from './errors';
+import { BrdgError, type BrdgErrorBody } from './errors';
 
 export type QueryValue = string | number | boolean | undefined;
 
@@ -29,7 +29,7 @@ function buildUrl(
 }
 
 /**
- * One JSON round trip. A non-2xx answer becomes a {@link BridgError} carrying
+ * One JSON round trip. A non-2xx answer becomes a {@link BrdgError} carrying
  * the API's own `code`; a network failure propagates as thrown by `fetch`.
  */
 export async function request<T>(config: RequestConfig, options: RequestOptions): Promise<T> {
@@ -48,8 +48,8 @@ export async function request<T>(config: RequestConfig, options: RequestOptions)
   const json: unknown = text.length ? JSON.parse(text) : undefined;
 
   if (!response.ok) {
-    const body = (json as Partial<BridgErrorBody> | undefined)?.error;
-    throw new BridgError(`${options.method} ${options.path}`, response.status, body);
+    const body = (json as Partial<BrdgErrorBody> | undefined)?.error;
+    throw new BrdgError(`${options.method} ${options.path}`, response.status, body);
   }
   return json as T;
 }

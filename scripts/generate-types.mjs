@@ -11,7 +11,7 @@ const API = process.env.BRIDGE_API ?? 'http://localhost:3001';
 const spec = await (await fetch(`${API}/v1/openapi.json`)).json();
 
 // The public surface: markets, and quote -> build -> submit -> transfer. Everything
-// else the API serves is for the Bridg app itself.
+// else the API serves is for the BRDG app itself.
 const PUBLIC_PATHS = [
   '/bridge/source-chains',
   '/bridge/routes',

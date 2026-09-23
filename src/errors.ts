@@ -1,7 +1,7 @@
 /**
  * The envelope every non-2xx response carries.
  */
-export interface BridgErrorBody {
+export interface BrdgErrorBody {
   error: {
     code: string;
     message: string;
@@ -15,20 +15,16 @@ export interface BridgErrorBody {
  * `details` carries what there is to act on: both figures of a drifted quote,
  * the verdict that refused a venue override. `retryAfterMs` is set on `429`.
  */
-export class BridgError extends Error {
-  override readonly name = 'BridgError';
+export class BrdgError extends Error {
+  override readonly name = 'BrdgError';
   readonly code: string;
   readonly status: number;
   readonly details: Record<string, unknown>;
   readonly retryAfterMs: number | undefined;
   readonly endpoint: string;
 
-  constructor(
-    endpoint: string,
-    status: number,
-    body: Partial<BridgErrorBody['error']> | undefined,
-  ) {
-    super(body?.message ?? `Bridg API responded ${status} on ${endpoint}`);
+  constructor(endpoint: string, status: number, body: Partial<BrdgErrorBody['error']> | undefined) {
+    super(body?.message ?? `BRDG API responded ${status} on ${endpoint}`);
     this.code = body?.code ?? 'unknown';
     this.status = status;
     this.details = body?.details ?? {};
@@ -37,8 +33,8 @@ export class BridgError extends Error {
   }
 }
 
-export function isBridgError(error: unknown): error is BridgError {
-  return error instanceof BridgError;
+export function isBrdgError(error: unknown): error is BrdgError {
+  return error instanceof BrdgError;
 }
 
 /**

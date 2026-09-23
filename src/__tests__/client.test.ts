@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createClient, isBridgError, TransferTimeoutError, type BridgError } from '../index';
+import { createClient, isBrdgError, TransferTimeoutError, type BrdgError } from '../index';
+import * as sdk from '../index';
 
 type Call = { url: string; init: RequestInit };
 
@@ -17,7 +18,7 @@ function fakeFetch(handler: (call: Call) => { status?: number; body?: unknown })
   return { fetchImpl, calls };
 }
 
-describe('BridgClient', () => {
+describe('BrdgClient', () => {
   it('posts a quote as JSON to the production base url by default', async () => {
     const { fetchImpl, calls } = fakeFetch(() => ({ body: { decisionId: 'd1', quotes: [] } }));
     const client = createClient({ fetch: fetchImpl });
@@ -31,7 +32,7 @@ describe('BridgClient', () => {
       recipient: '3BQtHR41iDPiu9skeSVzmBDpZKcKqEEDnMn6UkbAHvZz',
     });
     expect(quote.decisionId).toBe('d1');
-    expect(calls[0]?.url).toBe('https://api.bridg.now/v1/bridge/quote');
+    expect(calls[0]?.url).toBe('https://api.brdg.now/v1/bridge/quote');
     expect(calls[0]?.init.method).toBe('POST');
     expect(JSON.parse(String(calls[0]?.init.body)).amountAtomic).toBe('100000000');
     expect((calls[0]?.init.headers as Record<string, string>)['content-type']).toBe(
@@ -48,15 +49,15 @@ describe('BridgClient', () => {
     );
   });
 
-  it('turns the error envelope into a BridgError with the code and retry hint', async () => {
+  it('turns the error envelope into a BrdgError with the code and retry hint', async () => {
     const { fetchImpl } = fakeFetch(() => ({
       status: 429,
       body: { error: { code: 'rate_limited', message: 'slow down', retryAfterMs: 1200 } },
     }));
     const client = createClient({ fetch: fetchImpl });
     const failure = await client.getVenues().catch((error: unknown) => error);
-    expect(isBridgError(failure)).toBe(true);
-    const error = failure as BridgError;
+    expect(isBrdgError(failure)).toBe(true);
+    const error = failure as BrdgError;
     expect(error.code).toBe('rate_limited');
     expect(error.status).toBe(429);
     expect(error.retryAfterMs).toBe(1200);
@@ -83,5 +84,13 @@ describe('BridgClient', () => {
     await expect(
       client.waitForTransfer('t2', { intervalMs: 1, timeoutMs: 0 }),
     ).rejects.toBeInstanceOf(TransferTimeoutError);
+  });
+});
+
+describe('deprecated Bridg aliases', () => {
+  it('are the renamed exports', () => {
+    expect(sdk.BridgClient).toBe(sdk.BrdgClient);
+    expect(sdk.BridgError).toBe(sdk.BrdgError);
+    expect(sdk.isBridgError).toBe(sdk.isBrdgError);
   });
 });

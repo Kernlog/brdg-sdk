@@ -3,7 +3,7 @@ import { request, type QueryValue } from './request';
 import type * as T from './types';
 import { waitForTransfer, type WaitForTransferOptions } from './wait';
 
-export interface BridgClientOptions {
+export interface BrdgClientOptions {
   /**
    * API origin including the version prefix. Default {@link MAINNET_API_URL}.
    */
@@ -23,21 +23,21 @@ interface PathParams {
 }
 
 /**
- * A client for the Bridg API. One method per endpoint; the names follow the
- * API reference at https://docs.bridg.now/api-reference/overview. No API key.
+ * A client for the BRDG API. One method per endpoint; the names follow the
+ * API reference at https://docs.brdg.now/api-reference/overview. No API key.
  */
-export class BridgClient {
+export class BrdgClient {
   readonly version = SDK_VERSION;
   readonly baseUrl: string;
   private readonly headers: Record<string, string>;
   private readonly fetchImpl: typeof fetch;
 
-  constructor(options: BridgClientOptions = {}) {
+  constructor(options: BrdgClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? MAINNET_API_URL;
     this.headers = options.headers ?? {};
     const fetchImpl = options.fetch ?? globalThis.fetch;
     if (typeof fetchImpl !== 'function')
-      throw new TypeError('No fetch available: pass one in BridgClientOptions.fetch');
+      throw new TypeError('No fetch available: pass one in BrdgClientOptions.fetch');
 
     this.fetchImpl = fetchImpl;
   }
@@ -130,6 +130,6 @@ export class BridgClient {
 }
 
 /** Create a client. `createClient()` with no options targets production. */
-export function createClient(options?: BridgClientOptions): BridgClient {
-  return new BridgClient(options);
+export function createClient(options?: BrdgClientOptions): BrdgClient {
+  return new BrdgClient(options);
 }

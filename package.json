@@ -1,20 +1,20 @@
 {
-  "name": "@kernlog/bridg-sdk",
-  "version": "0.2.0",
-  "description": "TypeScript client for the Bridg API: quote, build, submit and track cross-chain transfers.",
+  "name": "@kernlog/brdg-sdk",
+  "version": "0.3.0",
+  "description": "TypeScript client for the BRDG API: quote, build, submit and track cross-chain transfers.",
   "license": "MIT",
-  "homepage": "https://docs.bridg.now/sdk",
+  "homepage": "https://docs.brdg.now/sdk",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Kernlog/bridg-sdk.git"
+    "url": "https://github.com/Kernlog/brdg-sdk.git"
   },
-  "bugs": "https://github.com/Kernlog/bridg-sdk/issues",
+  "bugs": "https://github.com/Kernlog/brdg-sdk/issues",
   "keywords": [
     "bridge",
     "cross-chain",
     "aggregator",
     "swap",
-    "bridg"
+    "brdg"
   ],
   "type": "module",
   "main": "./dist/index.cjs",

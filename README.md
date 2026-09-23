@@ -1,9 +1,9 @@
-# @kernlog/bridg-sdk
+# @kernlog/brdg-sdk
 
-TypeScript client for the [Bridg API](https://docs.bridg.now/api-reference/overview): quote a cross-chain transfer, build the transaction, submit it, track it. Typed from the API's own OpenAPI document. No API key, no runtime dependencies.
+TypeScript client for the [BRDG API](https://docs.brdg.now/api-reference/overview): quote a cross-chain transfer, build the transaction, submit it, track it. Typed from the API's own OpenAPI document. No API key, no runtime dependencies.
 
 ```bash
-npm install @kernlog/bridg-sdk
+npm install @kernlog/brdg-sdk
 ```
 
 Node 18+ or any runtime with a global `fetch`.
@@ -11,16 +11,16 @@ Node 18+ or any runtime with a global `fetch`.
 ## Quote, build, sign, submit, track
 
 ```ts
-import { createClient } from '@kernlog/bridg-sdk';
+import { createClient } from '@kernlog/brdg-sdk';
 
-const bridg = createClient();
+const brdg = createClient();
 
 // 1. Markets
-const { chains } = await bridg.getSourceChains();
-const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'solana' });
+const { chains } = await brdg.getSourceChains();
+const { routes } = await brdg.getRoutes({ fromChain: 'base', toChain: 'solana' });
 
 // 2. Quote: 100 USDC on Base to USDC on Solana
-const quote = await bridg.getQuote({
+const quote = await brdg.getQuote({
   fromChain: 'base',
   toChain: 'solana',
   fromToken: 'USDC',
@@ -29,18 +29,18 @@ const quote = await bridg.getQuote({
   sender: '0xYourEvmWallet',
   recipient: 'YourSolanaWallet',
 });
-quote.best; // the row Bridg builds by default
+quote.best; // the row BRDG builds by default
 quote.bestByTime; // quoteId of the fastest executable row
 quote.quotes; // every venue that answered, best first
 
 // 3. Build the unsigned steps for the winner (or pass quoteId for another row)
-const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
+const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
 
 // 4. Sign build.steps in order with the user's wallet, then report the hash
-await bridg.submitTransfer(build.transferId, { txHash: '0x…', step: 'main' });
+await brdg.submitTransfer(build.transferId, { txHash: '0x…', step: 'main' });
 
 // 5. Track
-const transfer = await bridg.waitForTransfer(build.transferId, {
+const transfer = await brdg.waitForTransfer(build.transferId, {
   onUpdate: (t) => console.log(t.status),
 });
 ```
@@ -51,7 +51,7 @@ const transfer = await bridg.waitForTransfer(build.transferId, {
 
 ```ts
 createClient({
-  baseUrl: 'https://api.bridg.now/v1', // default
+  baseUrl: 'https://api.brdg.now/v1', // default
   headers: { 'x-integrator': 'my-app' },
   fetch: customFetch,
 });
@@ -62,26 +62,26 @@ createClient({
 Put your wallet and rate on the quote. Both fields or neither; the wallet must be valid on the source chain.
 
 ```ts
-await bridg.getQuote({ ...params, referralWallet: '0xYourWallet', referralBps: 10 });
+await brdg.getQuote({ ...params, referralWallet: '0xYourWallet', referralBps: 10 });
 ```
 
 ## Errors
 
-Every API error is a `BridgError` with the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`.
+Every API error is a `BrdgError` with the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`.
 
 ```ts
-import { isBridgError } from '@kernlog/bridg-sdk';
+import { isBrdgError } from '@kernlog/brdg-sdk';
 
 try {
-  await bridg.buildTransfer({ decisionId });
+  await brdg.buildTransfer({ decisionId });
 } catch (error) {
-  if (isBridgError(error) && error.code === 'quote_drifted') {
+  if (isBrdgError(error) && error.code === 'quote_drifted') {
     // re-quote and choose again; error.details carries both figures
   }
 }
 ```
 
-The codes are listed at [docs.bridg.now/reference/errors](https://docs.bridg.now/reference/errors).
+The codes are listed at [docs.brdg.now/reference/errors](https://docs.brdg.now/reference/errors).
 
 ## Methods
 

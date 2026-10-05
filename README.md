@@ -1,6 +1,6 @@
 # @kernlog/brdg-sdk
 
-TypeScript client for the [BRDG API](https://docs.brdg.now/api-reference/overview): quote a cross-chain transfer, build the transaction, submit it, track it. Typed from the API's own OpenAPI document. No API key, no runtime dependencies.
+TypeScript client for the [BRDG API](https://docs.brdg.now/api-reference/overview): quote a cross-chain transfer, build the transaction, submit it, track it. Typed from the API's own OpenAPI document. No API key required, no runtime dependencies.
 
 ```bash
 npm install @kernlog/brdg-sdk
@@ -52,10 +52,34 @@ const transfer = await brdg.waitForTransfer(build.transferId, {
 ```ts
 createClient({
   baseUrl: 'https://api.brdg.now/v1', // default
+  apiKey: process.env.BRDG_API_KEY, // optional partner key, server-side only
+  retry: true, // optional; off by default
   headers: { 'x-integrator': 'my-app' },
   fetch: customFetch,
 });
 ```
+
+### Calling from a server
+
+Without a key every request your server makes shares one per-IP rate limit (10 per minute for
+quote, build and submit), whichever of your users it is for. With a partner `apiKey`, sent as
+`x-brdg-api-key`, the per-IP limit applies to the `userIp` you put on each request instead, under a
+partner-wide ceiling. The per-wallet limit is unchanged. Keep the key on the server.
+
+```ts
+const brdg = createClient({ apiKey: process.env.BRDG_API_KEY, retry: true });
+await brdg.getQuote({ ...params, userIp: endUser.ip });
+```
+
+An unknown key is `401 invalid_api_key`, a disabled one `401 api_key_disabled`.
+
+### Retries
+
+`retry: true` (or `{ retries, baseDelayMs, maxDelayMs, maxRetryAfterMs }`, defaults 3, 500, 10000, 60000) retries with exponential backoff and full jitter, waiting at least what `Retry-After` asks.
+GETs retry on `429`, `5xx` and network failures. POSTs retry only on `429 rate_limited`, where the
+API did nothing; a `5xx` or dropped connection on a build or submit is thrown, because it may have
+happened. `waitForTransfer` always polls through transient read failures until its timeout; pass
+`onError` to see them.
 
 ## Referrals
 

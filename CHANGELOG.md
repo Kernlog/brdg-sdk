@@ -6,6 +6,25 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `apiKey` client option: sends the partner key as `x-brdg-api-key` on every request. With a key the
+  API applies its per-IP rate limit to the `userIp` in each request body instead of the calling
+  server, under a partner-wide ceiling. Exported as `API_KEY_HEADER`.
+- `retry` client option (`true` or `RetryOptions`: `retries`, `baseDelayMs`, `maxDelayMs`,
+  `maxRetryAfterMs`), off by default. Exponential backoff with full jitter, honouring `Retry-After`
+  and `retryAfterMs`. GETs retry on `429`, `5xx` and network failures; POSTs only on
+  `429 rate_limited`, where the API did nothing.
+- `waitForTransfer` polls through transient read failures (`429`, `5xx`, network) instead of
+  throwing, waits out a `retryAfterMs`, and reports each one to the new `onError` callback. A `404`
+  or other answer is still thrown at once.
+
+### Changed
+
+- `BrdgError.retryAfterMs` is the longer of the `Retry-After` header and the body's hint.
+- A non-2xx response whose body is not JSON (a proxy's error page) now throws a `BrdgError` with
+  its status instead of a JSON parse error.
+
 ## [0.3.0] - 2026-09-23
 
 ### Changed

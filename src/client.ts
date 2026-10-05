@@ -1,5 +1,6 @@
-import { MAINNET_API_URL, SDK_VERSION } from './constants';
+import { API_KEY_HEADER, MAINNET_API_URL, SDK_VERSION } from './constants';
 import { request, type QueryValue } from './request';
+import { resolveRetry, type ResolvedRetry, type RetryOptions } from './retry';
 import type * as T from './types';
 import { waitForTransfer, type WaitForTransferOptions } from './wait';
 
@@ -9,9 +10,23 @@ export interface BrdgClientOptions {
    */
   baseUrl?: string;
   /**
+   * Partner API key, sent as `x-brdg-api-key` on every request. For server
+   * integrators: with it, the API's per-IP rate limit applies to the `userIp`
+   * in each request body instead of your server's address, under a
+   * partner-wide ceiling. Keep it server-side; never ship it to a browser.
+   */
+  apiKey?: string;
+  /**
    * Extra headers on every request.
    */
   headers?: Record<string, string>;
+  /**
+   * Retry transient failures with exponential backoff and full jitter,
+   * honouring `Retry-After`. `true` for the defaults. GETs retry on `429`,
+   * `5xx` and network failures; POSTs only on `429 rate_limited`, where the
+   * API did nothing. Off by default.
+   */
+  retry?: boolean | RetryOptions;
   /**
    * A `fetch` implementation; defaults to the global one.
    */
@@ -24,17 +39,23 @@ interface PathParams {
 
 /**
  * A client for the BRDG API. One method per endpoint; the names follow the
- * API reference at https://docs.brdg.now/api-reference/overview. No API key.
+ * API reference at https://docs.brdg.now/api-reference/overview. An API key
+ * is optional (`apiKey`), for server integrators.
  */
 export class BrdgClient {
   readonly version = SDK_VERSION;
   readonly baseUrl: string;
   private readonly headers: Record<string, string>;
   private readonly fetchImpl: typeof fetch;
+  private readonly retry: ResolvedRetry | null;
 
   constructor(options: BrdgClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? MAINNET_API_URL;
-    this.headers = options.headers ?? {};
+    this.headers = {
+      ...options.headers,
+      ...(options.apiKey === undefined ? {} : { [API_KEY_HEADER]: options.apiKey }),
+    };
+    this.retry = resolveRetry(options.retry);
     const fetchImpl = options.fetch ?? globalThis.fetch;
     if (typeof fetchImpl !== 'function')
       throw new TypeError('No fetch available: pass one in BrdgClientOptions.fetch');
@@ -48,7 +69,7 @@ export class BrdgClient {
     init: { query?: Record<string, QueryValue>; body?: unknown; signal?: AbortSignal } = {},
   ): Promise<R> {
     return request<R>(
-      { baseUrl: this.baseUrl, fetch: this.fetchImpl, headers: this.headers },
+      { baseUrl: this.baseUrl, fetch: this.fetchImpl, headers: this.headers, retry: this.retry },
       { method, path, ...init },
     );
   }

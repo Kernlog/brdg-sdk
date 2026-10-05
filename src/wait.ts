@@ -1,5 +1,6 @@
 import { TERMINAL_TRANSFER_STATUSES } from './constants';
-import { TransferTimeoutError } from './errors';
+import { BrdgError, TransferTimeoutError } from './errors';
+import { isTransientError, sleep } from './retry';
 import type { Transfer, TransferStatus } from './types';
 
 export interface WaitForTransferOptions {
@@ -15,25 +16,17 @@ export interface WaitForTransferOptions {
    * Called with every transfer read, including the final one.
    */
   onUpdate?: (transfer: Transfer) => void;
+  /**
+   * Called with every read that failed transiently (`429`, `5xx`, network) and
+   * was polled through. Any other failure is thrown.
+   */
+  onError?: (error: unknown) => void;
   signal?: AbortSignal;
 }
 
 export function isTerminalStatus(status: TransferStatus): boolean {
   return (TERMINAL_TRANSFER_STATUSES as readonly string[]).includes(status);
 }
-
-const sleep = (ms: number, signal?: AbortSignal) =>
-  new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        reject(signal.reason instanceof Error ? signal.reason : new Error('aborted'));
-      },
-      { once: true },
-    );
-  });
 
 /**
  * Poll `read` until the transfer reaches a terminal status. Realtime is an
@@ -49,10 +42,26 @@ export async function waitForTransfer(
   const deadline = Date.now() + (options.timeoutMs ?? 20 * 60_000);
   let last: Transfer | undefined;
   for (;;) {
-    last = await read();
-    options.onUpdate?.(last);
-    if (isTerminalStatus(last.status)) return last;
+    let waitMs = intervalMs;
+    try {
+      last = await read();
+      options.onUpdate?.(last);
+      if (isTerminalStatus(last.status)) return last;
+    } catch (error) {
+      // A transient read failure says nothing about the transfer, which keeps moving on chain
+      // either way: poll through it. A 404 or a 400 is an answer, and is thrown.
+      if (!isTransientError(error) || options.signal?.aborted) throw error;
+      options.onError?.(error);
+      if (Date.now() >= deadline) {
+        if (last === undefined) throw error;
+        throw new TransferTimeoutError(transferId, last.status);
+      }
+      if (error instanceof BrdgError && error.retryAfterMs !== undefined)
+        waitMs = Math.max(intervalMs, error.retryAfterMs);
+      await sleep(waitMs, options.signal);
+      continue;
+    }
     if (Date.now() >= deadline) throw new TransferTimeoutError(transferId, last.status);
-    await sleep(intervalMs, options.signal);
+    await sleep(waitMs, options.signal);
   }
 }

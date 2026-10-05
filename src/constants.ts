@@ -14,4 +14,9 @@ export const TERMINAL_TRANSFER_STATUSES = [
   'ABANDONED',
 ] as const;
 
+/**
+ * The header a partner API key is sent in.
+ */
+export const API_KEY_HEADER = 'x-brdg-api-key';
+
 export const SDK_VERSION = '0.3.0';

@@ -6,6 +6,8 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-05
+
 ### Added
 
 - `apiKey` client option: sends the partner key as `x-brdg-api-key` on every request. With a key the
@@ -64,7 +66,8 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 - `BridgError` carrying the API's `code`, `status`, `details` and `retryAfterMs`.
 - Request and response types generated from the API's OpenAPI document.
 
-[Unreleased]: https://github.com/Kernlog/brdg-sdk/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Kernlog/brdg-sdk/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Kernlog/brdg-sdk/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Kernlog/brdg-sdk/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Kernlog/brdg-sdk/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Kernlog/brdg-sdk/compare/v0.1.0...v0.1.1

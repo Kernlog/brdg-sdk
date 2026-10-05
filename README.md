@@ -71,7 +71,11 @@ const brdg = createClient({ apiKey: process.env.BRDG_API_KEY, retry: true });
 await brdg.getQuote({ ...params, userIp: endUser.ip });
 ```
 
-An unknown key is `401 invalid_api_key`, a disabled one `401 api_key_disabled`.
+Keys are issued by BRDG on request; there is no self-serve signup. For a key or higher limits, contact
+[@kernlog on Telegram](https://t.me/kernlog) or [kernlog@print.world](mailto:kernlog@print.world).
+
+An unknown key is `401 invalid_api_key`, a disabled one `401 api_key_disabled`. Every `429` and
+bad-key `401` carries the same contact in `error.details.contact`.
 
 ### Retries
 

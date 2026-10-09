@@ -101,6 +101,29 @@ const QUOTE = {
 } as const;
 const FAST = { retries: 3, baseDelayMs: 1, maxDelayMs: 2 };
 
+describe('fast fill', () => {
+  it('quotes, builds and submits a signature on the fastfill paths', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { ok: true } }));
+    const client = createClient({ fetch: fetchImpl });
+    await client.getFastFillQuote({
+      fromChain: 'base',
+      toChain: 'arbitrum',
+      fromToken: 'USDC',
+      toToken: 'USDC',
+      amountAtomic: '10000000',
+      sender: '0x58E602386DB134b1F9B1d6d390C11A2B7b486677',
+    } as never);
+    await client.buildFastFill({ decisionId: 'd1' } as never);
+    await client.submitFastFillSignature('t/1', { signature: '0xab' } as never);
+    expect(calls.map((call) => call.url)).toEqual([
+      'https://api.brdg.now/v1/fastfill/quote',
+      'https://api.brdg.now/v1/fastfill/build',
+      'https://api.brdg.now/v1/fastfill/transfers/t%2F1/submit',
+    ]);
+    expect(JSON.parse(String(calls[2]?.init.body))).toEqual({ signature: '0xab' });
+  });
+});
+
 describe('apiKey', () => {
   it('sends x-brdg-api-key on every request, beside custom headers', async () => {
     const { fetchImpl, calls } = fakeFetch(() => ({ body: { venues: [], decisionId: 'd' } }));

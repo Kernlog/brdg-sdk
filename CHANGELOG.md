@@ -6,6 +6,17 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-08
+
+### Added
+
+- Fast fill: `getFastFillQuote`, `buildFastFill` and `submitFastFillSignature` for
+  `POST /fastfill/quote`, `/fastfill/build` and `/fastfill/transfers/{id}/submit`, with
+  `FastFillQuoteRequest`/`Response`, `FastFillBuildRequest`/`Response` and
+  `FastFillSubmitRequest`/`Response`. Relay and Across fill gasless from one EIP-712 signature;
+  Mayan Swift (EVM and Solana sources) is sent by the user and offered only when the sender holds
+  the source gas.
+
 ## [0.4.0] - 2026-10-05
 
 ### Added

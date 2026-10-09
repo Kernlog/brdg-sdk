@@ -130,6 +130,46 @@ export class BrdgClient {
     });
   }
 
+  // Fast fill
+
+  /**
+   * Price a fast fill: only venues whose solver fills the destination at once
+   * compete, ranked by what the user receives. Relay and Across are gasless (the
+   * build ends in a message to sign); Mayan Swift is sent by the user and is
+   * offered only when `sender` holds the source-chain gas.
+   */
+  getFastFillQuote(
+    body: T.FastFillQuoteRequest,
+    opts?: PathParams,
+  ): Promise<T.FastFillQuoteResponse> {
+    return this.call('POST', '/fastfill/quote', { body, ...opts });
+  }
+
+  /**
+   * Build the winning fast fill. A gasless venue's last step is
+   * `{ vm: 'sign', scheme: 'eip712' }`, submitted with
+   * {@link submitFastFillSignature}; any transaction step (a Permit2 approve, a
+   * Mayan order) goes through {@link submitTransfer}.
+   */
+  buildFastFill(body: T.FastFillBuildRequest, opts?: PathParams): Promise<T.FastFillBuildResponse> {
+    return this.call('POST', '/fastfill/build', { body, ...opts });
+  }
+
+  /**
+   * Hand a fast fill's EIP-712 signature to the venue's relayer. Safe to repeat
+   * with the same signature: it is never sent twice.
+   */
+  submitFastFillSignature(
+    transferId: string,
+    body: T.FastFillSubmitRequest,
+    opts?: PathParams,
+  ): Promise<T.FastFillSubmitResponse> {
+    return this.call('POST', `/fastfill/transfers/${encodeURIComponent(transferId)}/submit`, {
+      body,
+      ...opts,
+    });
+  }
+
   /**
    * Read one transfer. Open by id.
    */

@@ -47,6 +47,34 @@ const transfer = await brdg.waitForTransfer(build.transferId, {
 
 `amountAtomic` and every amount in a response are strings in atomic units.
 
+## Fast fill
+
+A fast fill lands in seconds: the venue's solver pays the destination from its own liquidity.
+Relay and Across are gasless: the build ends in one EIP-712 message to sign. Mayan Swift is sent by
+the user like any transaction, and is offered only when `sender` holds the source-chain gas.
+
+```ts
+const quote = await brdg.getFastFillQuote({
+  fromChain: 'base',
+  toChain: 'arbitrum',
+  fromToken: 'USDC',
+  toToken: 'USDC',
+  amountAtomic: '10000000',
+  sender: '0xYourEvmWallet',
+});
+const build = await brdg.buildFastFill({ decisionId: quote.decisionId });
+
+for (const step of build.steps) {
+  if (step.vm === 'sign') {
+    // Gasless: sign payload.domain/types/primaryType/message with eth_signTypedData_v4
+    await brdg.submitFastFillSignature(build.transferId, { signature: '0x…' });
+  } else {
+    // An approve, or a Mayan order: send it like any step
+    await brdg.submitTransfer(build.transferId, { txHash: '0x…', step: step.step });
+  }
+}
+```
+
 ## Configuration
 
 ```ts
@@ -121,6 +149,9 @@ The codes are listed at [docs.brdg.now/reference/errors](https://docs.brdg.now/r
 | `getQuote(request)`                                                 | `POST /bridge/quote`                              |
 | `buildTransfer({ decisionId, quoteId? })`                           | `POST /bridge/build`                              |
 | `submitTransfer(transferId, { txHash \| signedTransaction, step })` | `POST /bridge/transfers/{id}/submit`              |
+| `getFastFillQuote(request)`                                         | `POST /fastfill/quote`                            |
+| `buildFastFill({ decisionId })`                                     | `POST /fastfill/build`                            |
+| `submitFastFillSignature(transferId, { signature })`                | `POST /fastfill/transfers/{id}/submit`            |
 | `getTransfer(transferId)`                                           | `GET /bridge/transfers/{id}`                      |
 | `waitForTransfer(transferId, options?)`                             | polls `GET /bridge/transfers/{id}` until terminal |
 

@@ -55,3 +55,11 @@ export type SubmitRequest = RequestBody<'/bridge/transfers/{id}/submit', 'post'>
 export type SubmitResponse = Response<'/bridge/transfers/{id}/submit', 'post'>;
 export type Transfer = Response<'/bridge/transfers/{id}', 'get'>;
 export type TransferStatus = Transfer['status'];
+
+// Fast fill
+export type FastFillQuoteRequest = RequestBody<'/fastfill/quote', 'post'>;
+export type FastFillQuoteResponse = Response<'/fastfill/quote', 'post'>;
+export type FastFillBuildRequest = RequestBody<'/fastfill/build', 'post'>;
+export type FastFillBuildResponse = Response<'/fastfill/build', 'post'>;
+export type FastFillSubmitRequest = RequestBody<'/fastfill/transfers/{id}/submit', 'post'>;
+export type FastFillSubmitResponse = Response<'/fastfill/transfers/{id}/submit', 'post'>;

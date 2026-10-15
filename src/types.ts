@@ -63,3 +63,11 @@ export type FastFillBuildRequest = RequestBody<'/fastfill/build', 'post'>;
 export type FastFillBuildResponse = Response<'/fastfill/build', 'post'>;
 export type FastFillSubmitRequest = RequestBody<'/fastfill/transfers/{id}/submit', 'post'>;
 export type FastFillSubmitResponse = Response<'/fastfill/transfers/{id}/submit', 'post'>;
+export type QuotePlatformFee = NonNullable<QuoteResponse['fees']['platform']>;
+export type ReferralDiscount = NonNullable<QuotePlatformFee['discount']>;
+
+// Referrals
+export type ReferralResolution = Response<'/referrals/{code}', 'get'>;
+export type ReferralLeaderboardQuery = Query<'/referrals/leaderboard', 'get'>;
+export type ReferralLeaderboard = Response<'/referrals/leaderboard', 'get'>;
+export type ReferralLeaderboardRow = ReferralLeaderboard['rows'][number];

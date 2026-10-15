@@ -1,4 +1,5 @@
 import { API_KEY_HEADER, MAINNET_API_URL, SDK_VERSION } from './constants';
+import { BrdgError } from './errors';
 import { request, type QueryValue } from './request';
 import { resolveRetry, type ResolvedRetry, type RetryOptions } from './retry';
 import type * as T from './types';
@@ -35,6 +36,34 @@ export interface BrdgClientOptions {
 
 interface PathParams {
   signal?: AbortSignal;
+}
+
+/**
+ * The API's referral code rule, applied after trimming and lower-casing: 3 to 15 of a-z, 0-9 and
+ * `-`, no leading or trailing hyphen, and no `--` run.
+ */
+const REFERRAL_CODE = /^[a-z0-9](?:[a-z0-9-]{1,13}[a-z0-9])$/;
+
+function normalizeReferralCode(code: string): string | null {
+  const normalized = code.trim().toLowerCase();
+  return REFERRAL_CODE.test(normalized) && !normalized.includes('--') ? normalized : null;
+}
+
+/**
+ * The body with `referralCode` normalized, or a thrown `invalid_referral_code` before any request.
+ * The API would silently ignore a malformed code and charge the full fee; failing here tells the
+ * integrator instead. The rejected input is never echoed into the message.
+ */
+function withReferralCode<B extends { referralCode?: string }>(body: B, endpoint: string): B {
+  if (body.referralCode === undefined) return body;
+  const referralCode = normalizeReferralCode(body.referralCode);
+  if (referralCode === null)
+    throw new BrdgError(endpoint, 400, {
+      code: 'invalid_referral_code',
+      message:
+        'referralCode must be 3 to 15 characters of a-z, 0-9 and single hyphens, starting and ending with a letter or digit',
+    });
+  return { ...body, referralCode };
 }
 
 /**
@@ -102,9 +131,12 @@ export class BrdgClient {
   /**
    * Price a transfer across every venue that serves it. The response carries
    * `best`, the `bestByPrice` and `bestByTime` row ids, and the full table.
+   * A `referralCode` is trimmed and lower-cased; a malformed one throws
+   * `invalid_referral_code` before any request.
    */
-  getQuote(body: T.QuoteRequest, opts?: PathParams): Promise<T.QuoteResponse> {
-    return this.call('POST', '/bridge/quote', { body, ...opts });
+  async getQuote(body: T.QuoteRequest, opts?: PathParams): Promise<T.QuoteResponse> {
+    const checked = withReferralCode(body, 'POST /bridge/quote');
+    return this.call('POST', '/bridge/quote', { body: checked, ...opts });
   }
 
   /**
@@ -136,13 +168,15 @@ export class BrdgClient {
    * Price a fast fill: only venues whose solver fills the destination at once
    * compete, ranked by what the user receives. Relay and Across are gasless (the
    * build ends in a message to sign); Mayan Swift is sent by the user and is
-   * offered only when `sender` holds the source-chain gas.
+   * offered only when `sender` holds the source-chain gas. `referralCode` is
+   * checked as on {@link getQuote}.
    */
-  getFastFillQuote(
+  async getFastFillQuote(
     body: T.FastFillQuoteRequest,
     opts?: PathParams,
   ): Promise<T.FastFillQuoteResponse> {
-    return this.call('POST', '/fastfill/quote', { body, ...opts });
+    const checked = withReferralCode(body, 'POST /fastfill/quote');
+    return this.call('POST', '/fastfill/quote', { body: checked, ...opts });
   }
 
   /**
@@ -168,6 +202,32 @@ export class BrdgClient {
       body,
       ...opts,
     });
+  }
+
+  // Referrals
+
+  /**
+   * Whether a referral code exists. The code is trimmed and lower-cased; a
+   * malformed one answers `{ valid: false, reason: 'invalid' }` without a
+   * request, exactly as the API would.
+   */
+  resolveReferral(code: string, opts?: PathParams): Promise<T.ReferralResolution> {
+    const normalized = normalizeReferralCode(code);
+    if (normalized === null) return Promise.resolve({ valid: false, reason: 'invalid' });
+    // `leaderboard` is reserved, and as a path segment it would hit the leaderboard instead.
+    if (normalized === 'leaderboard') return Promise.resolve({ valid: false, reason: 'not_found' });
+    return this.call('GET', `/referrals/${encodeURIComponent(normalized)}`, opts);
+  }
+
+  /**
+   * Referral codes ranked by points, then by the earliest claimed. `limit` is
+   * 1 to 100, default 25. Refreshed by the API about every 30 seconds.
+   */
+  getReferralLeaderboard(
+    query: T.ReferralLeaderboardQuery = {},
+    opts?: PathParams,
+  ): Promise<T.ReferralLeaderboard> {
+    return this.call('GET', '/referrals/leaderboard', { query, ...opts });
   }
 
   /**

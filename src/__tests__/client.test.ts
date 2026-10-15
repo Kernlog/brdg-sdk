@@ -124,6 +124,90 @@ describe('fast fill', () => {
   });
 });
 
+describe('referrals', () => {
+  it('trims and lower-cases referralCode on both quotes', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { ok: true } }));
+    const client = createClient({ fetch: fetchImpl });
+    await client.getQuote({ ...QUOTE, referralCode: '  Alice-01 ' });
+    await client.getFastFillQuote({ ...QUOTE, toChain: 'arbitrum', referralCode: 'BOB' });
+    expect(JSON.parse(String(calls[0]?.init.body)).referralCode).toBe('alice-01');
+    expect(JSON.parse(String(calls[1]?.init.body)).referralCode).toBe('bob');
+  });
+
+  it('sends no referralCode when none is given', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { ok: true } }));
+    await createClient({ fetch: fetchImpl }).getQuote(QUOTE);
+    expect(JSON.parse(String(calls[0]?.init.body))).not.toHaveProperty('referralCode');
+  });
+
+  it.each([
+    ['too short', 'ab'],
+    ['too long', 'a'.repeat(16)],
+    ['leading hyphen', '-alice'],
+    ['trailing hyphen', 'alice-'],
+    ['double hyphen', 'al--ice'],
+    ['bad character', 'alice_1'],
+    ['blank', '   '],
+  ])('rejects a malformed code (%s) before any request', async (_, referralCode) => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { ok: true } }));
+    const client = createClient({ fetch: fetchImpl });
+    for (const quote of [
+      client.getQuote({ ...QUOTE, referralCode }),
+      client.getFastFillQuote({ ...QUOTE, referralCode }),
+    ]) {
+      const failure = await quote.catch((error: unknown) => error);
+      expect(isBrdgError(failure)).toBe(true);
+      expect((failure as BrdgError).code).toBe('invalid_referral_code');
+      expect((failure as BrdgError).status).toBe(400);
+      expect((failure as BrdgError).message).not.toContain(referralCode.trim() || '\0');
+    }
+    expect(calls).toHaveLength(0);
+  });
+
+  it('accepts the shortest and longest codes', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { ok: true } }));
+    const client = createClient({ fetch: fetchImpl });
+    await client.getQuote({ ...QUOTE, referralCode: 'a1b' });
+    await client.getQuote({ ...QUOTE, referralCode: 'a'.repeat(15) });
+    expect(calls).toHaveLength(2);
+  });
+
+  it('resolves a code on GET /referrals/{code}, normalized', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { valid: true, code: 'alice' } }));
+    const resolved = await createClient({ fetch: fetchImpl }).resolveReferral(' Alice ');
+    expect(resolved).toEqual({ valid: true, code: 'alice' });
+    expect(calls[0]?.url).toBe('https://api.brdg.now/v1/referrals/alice');
+    expect(calls[0]?.init.method).toBe('GET');
+  });
+
+  it('answers a malformed code as invalid without a request', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { valid: true, code: 'x' } }));
+    const client = createClient({ fetch: fetchImpl });
+    expect(await client.resolveReferral('a/b')).toEqual({ valid: false, reason: 'invalid' });
+    expect(await client.resolveReferral('')).toEqual({ valid: false, reason: 'invalid' });
+    expect(await client.resolveReferral('Leaderboard')).toEqual({
+      valid: false,
+      reason: 'not_found',
+    });
+    expect(calls).toHaveLength(0);
+  });
+
+  it('reads the leaderboard with an optional limit', async () => {
+    const board = {
+      rows: [{ rank: 1, code: 'alice', points: 350, wallets: 2, volumeUsd: '350.20' }],
+      updatedAt: 1760486400000,
+    };
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: board }));
+    const client = createClient({ fetch: fetchImpl });
+    expect(await client.getReferralLeaderboard()).toEqual(board);
+    await client.getReferralLeaderboard({ limit: 10 });
+    expect(calls.map((call) => call.url)).toEqual([
+      'https://api.brdg.now/v1/referrals/leaderboard',
+      'https://api.brdg.now/v1/referrals/leaderboard?limit=10',
+    ]);
+  });
+});
+
 describe('apiKey', () => {
   it('sends x-brdg-api-key on every request, beside custom headers', async () => {
     const { fetchImpl, calls } = fakeFetch(() => ({ body: { venues: [], decisionId: 'd' } }));

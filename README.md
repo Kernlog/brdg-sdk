@@ -115,11 +115,37 @@ happened. `waitForTransfer` always polls through transient read failures until i
 
 ## Referrals
 
+### Your own fee
+
 Put your wallet and rate on the quote. Both fields or neither; the wallet must be valid on the source chain.
 
 ```ts
 await brdg.getQuote({ ...params, referralWallet: '0xYourWallet', referralBps: 10 });
 ```
+
+### Your users' referral codes
+
+A user who arrives with a BRDG referral link (`https://brdg.now/ref/<code>`) pays 10% less platform
+fee, rounded down to whole bps (5 to 4, 10 to 9, 15 to 13; no fee stays no fee), and the code's owner
+earns 1 point per dollar. Pass the code as `referralCode` on `getQuote` or `getFastFillQuote`; it is
+independent of `referralWallet` and `referralBps`.
+
+```ts
+const resolved = await brdg.resolveReferral('alice'); // { valid: true, code } | { valid: false, reason }
+const quote = await brdg.getQuote({
+  ...params,
+  referralCode: resolved.valid ? resolved.code : undefined,
+});
+quote.fees.platform?.discount; // { code, pct: 10, fullBps, fullAmountAtomic } | null
+
+const { rows, updatedAt } = await brdg.getReferralLeaderboard({ limit: 25 });
+```
+
+The code is trimmed and lower-cased, then must be 3 to 15 of `a-z`, `0-9` and `-`, with no hyphen
+first, last or doubled. A malformed `referralCode` throws `BrdgError` with the code
+`invalid_referral_code` before any request (the API itself would ignore it and charge the full
+fee). An unknown code, or one that belongs to `sender`, is ignored by the API. `resolveReferral`
+never throws for a malformed code: it answers `{ valid: false, reason: 'invalid' }`.
 
 ## Errors
 
@@ -152,6 +178,8 @@ The codes are listed at [docs.brdg.now/reference/errors](https://docs.brdg.now/r
 | `getFastFillQuote(request)`                                         | `POST /fastfill/quote`                            |
 | `buildFastFill({ decisionId })`                                     | `POST /fastfill/build`                            |
 | `submitFastFillSignature(transferId, { signature })`                | `POST /fastfill/transfers/{id}/submit`            |
+| `resolveReferral(code)`                                             | `GET /referrals/{code}`                           |
+| `getReferralLeaderboard({ limit? })`                                | `GET /referrals/leaderboard`                      |
 | `getTransfer(transferId)`                                           | `GET /bridge/transfers/{id}`                      |
 | `waitForTransfer(transferId, options?)`                             | polls `GET /bridge/transfers/{id}` until terminal |
 

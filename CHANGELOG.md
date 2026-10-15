@@ -6,6 +6,17 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Referrals: `resolveReferral(code)` for `GET /referrals/{code}` and
+  `getReferralLeaderboard({ limit? })` for `GET /referrals/leaderboard`, with `ReferralResolution`,
+  `ReferralLeaderboardQuery`, `ReferralLeaderboard` and `ReferralLeaderboardRow`.
+- `referralCode` on `getQuote` and `getFastFillQuote`: a user's BRDG referral code, worth 10% off the
+  platform fee. It is trimmed and lower-cased, and a malformed code throws a `BrdgError` with the
+  code `invalid_referral_code` before any request.
+- `fees.platform.discount` on quote responses (`{ code, pct, fullBps, fullAmountAtomic }` or
+  `null`), exported as `ReferralDiscount`, and the platform fee itself as `QuotePlatformFee`.
+
 ## [0.5.0] - 2026-10-08
 
 ### Added

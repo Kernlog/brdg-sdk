@@ -10,7 +10,8 @@ import openapiTS, { astToString } from 'openapi-typescript';
 const API = process.env.BRIDGE_API ?? 'http://localhost:3001';
 const spec = await (await fetch(`${API}/v1/openapi.json`)).json();
 
-// The public surface: markets, quote -> build -> submit -> transfer, and fast fill. Everything
+// The public surface: markets, quote -> build -> submit -> transfer, fast fill, and the two public
+// referral reads. Everything
 // else the API serves is for the BRDG app itself.
 const PUBLIC_PATHS = [
   '/bridge/source-chains',
@@ -23,6 +24,8 @@ const PUBLIC_PATHS = [
   '/fastfill/quote',
   '/fastfill/build',
   '/fastfill/transfers/{id}/submit',
+  '/referrals/leaderboard',
+  '/referrals/{code}',
 ];
 for (const path of Object.keys(spec.paths))
   if (!PUBLIC_PATHS.includes(path)) delete spec.paths[path];

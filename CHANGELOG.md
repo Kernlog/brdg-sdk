@@ -6,6 +6,14 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-15
+
+### Removed
+
+- The deprecated `Bridg*` aliases from the BRDG rename: `BridgClient`, `BridgClientOptions`,
+  `BridgError`, `BridgErrorBody` and `isBridgError`. Use `BrdgClient`, `BrdgClientOptions`,
+  `BrdgError`, `BrdgErrorBody` and `isBrdgError`, which they have pointed at since 0.3.0.
+
 ## [0.6.0] - 2026-10-15
 
 ### Added
@@ -90,7 +98,8 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 - `BridgError` carrying the API's `code`, `status`, `details` and `retryAfterMs`.
 - Request and response types generated from the API's OpenAPI document.
 
-[Unreleased]: https://github.com/Kernlog/brdg-sdk/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/Kernlog/brdg-sdk/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/Kernlog/brdg-sdk/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Kernlog/brdg-sdk/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/Kernlog/brdg-sdk/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Kernlog/brdg-sdk/compare/v0.3.0...v0.4.0

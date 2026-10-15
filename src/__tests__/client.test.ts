@@ -394,10 +394,11 @@ describe('waitForTransfer through transient failures', () => {
   });
 });
 
-describe('deprecated Bridg aliases', () => {
-  it('are the renamed exports', () => {
-    expect(sdk.BridgClient).toBe(sdk.BrdgClient);
-    expect(sdk.BridgError).toBe(sdk.BrdgError);
-    expect(sdk.isBridgError).toBe(sdk.isBrdgError);
+describe('the old Bridg names', () => {
+  it('are gone: only the BRDG spellings are exported', () => {
+    const names = Object.keys(sdk);
+    expect(names.filter((name) => /bridg(?!e)/i.test(name))).toEqual([]);
+    expect(sdk.BrdgClient).toBeDefined();
+    expect(sdk.BrdgError).toBeDefined();
   });
 });

@@ -121,7 +121,12 @@ Put your wallet and rate on the quote. Both fields or neither; the wallet must b
 
 ```ts
 await brdg.getQuote({ ...params, referralWallet: '0xYourWallet', referralBps: 10 });
+await brdg.getFastFillQuote({ ...params, referralWallet: '0xYourWallet', referralBps: 10 });
 ```
+
+A fast fill the venue relays is gasless, so no transaction of the user's can carry your payout:
+those rows come back with `referralFeeAmountAtomic: '0'` and `fees.referral: null` rather than
+quoting a share nothing would pay. A fast fill the user sends pays it normally.
 
 ### Your users' referral codes
 

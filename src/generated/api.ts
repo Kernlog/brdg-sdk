@@ -2075,7 +2075,9 @@ export interface paths {
                         /** @default false */
                         privacy?: boolean;
                         recipient?: string;
+                        referralBps?: number;
                         referralCode?: string;
+                        referralWallet?: string;
                         refundAddress?: string;
                         sender?: string;
                         /** @default 100 */

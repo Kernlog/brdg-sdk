@@ -6,6 +6,25 @@ All notable changes to `@kernlog/brdg-sdk` are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-15
+
+### Added
+
+- `referralWallet` and `referralBps` on `getFastFillQuote`, the integrator share the ordinary
+  `getQuote` has always taken, under the same `0` to `15` ceiling and the same both-or-neither
+  rule (`FastFillQuoteRequest` picks them up from the regenerated types). The fast-fill response
+  already carried `fees.referral` and a per-row `referralFeeAmountAtomic`; until the API accepted
+  the pair, those fields described a share no caller could ask for, and a body carrying them was
+  answered `200` with `referral: null`.
+
+### Changed
+
+- A fast fill the venue RELAYS now quotes `referralBps: 0` and `fees.referral: null`. That lane is
+  gasless - the user signs a message and the venue's relayer sends the source transaction - so no
+  transaction of the user's can carry an integrator payout, and quoting one would promise money
+  nothing pays. A fast fill the user sends (Mayan Swift, Relay on native and Solana sources) pays
+  the share normally; read `quotes[].referralFeeAmountAtomic` per row.
+
 ## [0.7.0] - 2026-10-15
 
 ### Removed

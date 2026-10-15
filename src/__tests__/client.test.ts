@@ -134,6 +134,23 @@ describe('referrals', () => {
     expect(JSON.parse(String(calls[1]?.init.body)).referralCode).toBe('bob');
   });
 
+  // THE PAIR REACHES THE FAST LANE UNTOUCHED. The client forwards the body verbatim, so what this
+  // pins is that `FastFillQuoteRequest` now TYPES the pair - before the regenerated types carried
+  // it, these two fields were a type error here and were dropped on the wire.
+  it('sends the integrator share on the fast-fill quote', async () => {
+    const { fetchImpl, calls } = fakeFetch(() => ({ body: { ok: true } }));
+    await createClient({ fetch: fetchImpl }).getFastFillQuote({
+      ...QUOTE,
+      toChain: 'arbitrum',
+      referralWallet: '0x2222222222222222222222222222222222222222',
+      referralBps: 10,
+    });
+    expect(JSON.parse(String(calls[0]?.init.body))).toMatchObject({
+      referralWallet: '0x2222222222222222222222222222222222222222',
+      referralBps: 10,
+    });
+  });
+
   it('sends no referralCode when none is given', async () => {
     const { fetchImpl, calls } = fakeFetch(() => ({ body: { ok: true } }));
     await createClient({ fetch: fetchImpl }).getQuote(QUOTE);
